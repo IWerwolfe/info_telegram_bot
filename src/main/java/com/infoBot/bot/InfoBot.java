@@ -5,8 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.extensions.bots.commandbot.TelegramLongPollingCommandBot;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.IBotCommand;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.ChatMemberUpdated;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 
 import java.util.List;
 
@@ -37,6 +38,11 @@ public class InfoBot extends TelegramLongPollingCommandBot {
     @Override
     public void processNonCommandUpdate(Update update) {
 
+        if (update.hasMyChatMember()) {
+            handlerUserStatus(update.getMyChatMember());
+            return;
+        }
+
         String text = """
                 Я не умею общаться в свободном стиле, лучше отправь мне команду из этого списка:
                                 
@@ -44,11 +50,24 @@ public class InfoBot extends TelegramLongPollingCommandBot {
                 """;
 
         Long userId = update.getMessage().getChatId();
-
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setText(text);
-        sendMessage.setChatId(userId);
-
         Sender.sendBotMessage(this, text, userId);
+    }
+
+    private void handlerUserStatus(ChatMemberUpdated update) {
+
+        ChatMember newMember = update.getNewChatMember();
+        ChatMember oldMember = update.getOldChatMember();
+        String status = newMember.getStatus();
+        String oldStatus = oldMember.getStatus();
+        String text;
+
+        if (status.equals("member")) {
+
+            text = oldStatus.equals("kicked") ?
+                    newMember.getUser().getUserName() + " с возвращением!" :
+                    "Приветствуем " + newMember.getUser().getUserName() + ", нового воина орды";
+            long id = update.getChat().getId();
+            Sender.sendBotMessage(this, text, id);
+        }
     }
 }
