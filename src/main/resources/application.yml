@@ -1,0 +1,29 @@
+server:
+  port: 8981
+logging:
+  level: DEBUG
+  level.org.springframework.web: DEBUG
+  level.org.hibernate: ERROR
+  file:
+    name: 'LOGS/dev_app.log'
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss} - %msg%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
+telegram:
+  bot:
+    token: 2129557551:AAFNe5JdnKsA0f6l_J3IkSdFxPnqTLVVDEU
+    username: new1KUsersBot
+spring:
+  datasource:
+    username: BD_Telegram
+    password: "!QAZzaq1"
+    url: jdbc:sqlserver://server:1433;databaseName=telegram_weatherGPT_bot;encrypt=true;trustServerCertificate=true
+    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServer2012Dialect
+    hibernate:
+      #            ddl-auto: create
+      ddl-auto: update
+    show-sql: false
