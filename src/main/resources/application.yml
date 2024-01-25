@@ -11,19 +11,27 @@ logging:
     file: '%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n'
 telegram:
   bot:
-    token: 2129557551:AAFNe5JdnKsA0f6l_J3IkSdFxPnqTLVVDEU
-    username: new1KUsersBot
+    token: 
+    username: 
 spring:
   datasource:
-    username: BD_Telegram
-    password: "!QAZzaq1"
-    url: jdbc:sqlserver://server:1433;databaseName=telegram_weatherGPT_bot;encrypt=true;trustServerCertificate=true
-    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+#    url: jdbc:h2:./bd/help_bot_db;DB_CLOSE_ON_EXIT=TRUE
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: '!QAZxsw2'
+  h2:
+    console:
+      enabled: true
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.SQLServer2012Dialect
+        dialect: org.hibernate.dialect.H2Dialect
     hibernate:
-      #            ddl-auto: create
+#                  ddl-auto: create
       ddl-auto: update
     show-sql: false
+setting-bot:
+  path-input: '/input'
+  file-name: 'dataset.txt'
+  timeout: 1
