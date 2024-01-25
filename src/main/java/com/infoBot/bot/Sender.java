@@ -2,35 +2,53 @@ package com.infoBot.bot;    /*
  *created by WerWolfe on Sender
  */
 
+import com.infoBot.utils.TextUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodBoolean;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.Serializable;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class Sender {
 
-    public static void sendBotMessage(InfoBot absSender, SendMessage message) {
-        sendMessage(absSender, message);
+    private final TextUtil textUtil;
+
+    public void sendBotMessage(InfoBot absSender, String message, long chatId, int messageId) {
+        sendBotEditMessage(absSender, message, null, chatId, messageId);
     }
 
-    public static void sendErrorMessage(InfoBot absSender, SendMessage message) {
-        sendMessage(absSender, message, true);
-    }
-
-    public static void sendBotMessage(InfoBot absSender, String message, long chatId) {
+    public void sendBotMessage(InfoBot absSender, String message, Long chatId) {
         sendBotMessage(absSender, message, null, chatId);
     }
 
-    public static void sendBotMessage(InfoBot absSender, String message, ReplyKeyboard keyboard, long chatId) {
+    public void sendBotEditMessage(InfoBot absSender, String message, long chatId, int messageId) {
+        sendBotEditMessage(absSender, message, null, chatId, messageId);
+    }
+
+    public void sendBotEditMessage(InfoBot absSender, String message, InlineKeyboardMarkup keyboard, long chatId, int messageId) {
+
+        if (message != null && message.trim().isEmpty()) {
+            log.error("Attempt to send an empty message from a user with an ID {}", chatId);
+            return;
+        }
+
+        BotApiMethod<? extends Serializable> sendMessage = messageId == 0 ?
+                createMessage(chatId, message, keyboard) :
+                createEditMessage(chatId, message, keyboard, messageId);
+
+        sendBotMessage(absSender, sendMessage);
+    }
+
+    public void sendBotMessage(InfoBot absSender, String message, ReplyKeyboard keyboard, long chatId) {
 
         if (message != null && message.trim().isEmpty()) {
             log.error("Attempt to send an empty message from a user with an ID {}", chatId);
@@ -40,44 +58,31 @@ public class Sender {
         sendBotMessage(absSender, sendMessage);
     }
 
-    private static SendMessage createMessage(long chatId, String text, ReplyKeyboard keyboard) {
+    private EditMessageText createEditMessage(long chatId, String text, InlineKeyboardMarkup keyboard, int messageId) {
 
-        if (text.length() > 4095) {
-            text = text.substring(0, 4092) + "...";
-        }
-
-        SendMessage message = new SendMessage();
+        EditMessageText message = new EditMessageText();
         message.setChatId(chatId);
-        message.setText(text);
+        message.setText(textUtil.shortenText(text, 4095));
+        message.setMessageId(messageId);
         message.setReplyMarkup(keyboard);
         return message;
     }
 
-    private static <T extends Serializable> int sendMessage(InfoBot absSender, BotApiMethod<T> message) {
-        return sendMessage(absSender, message, false);
+    private SendMessage createMessage(long chatId, String text, ReplyKeyboard keyboard) {
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(textUtil.shortenText(text, 4095));
+        message.setReplyMarkup(keyboard);
+        return message;
     }
 
-    private static  <T extends Serializable> int sendMessage(InfoBot absSender, BotApiMethod<T> message, boolean notHandleError) {
+    private void sendBotMessage(InfoBot absSender, BotApiMethod<? extends Serializable> message) {
+
         try {
-
-            if (message instanceof BotApiMethodMessage method) {
-                return absSender.execute(method).getMessageId();
-            }
-            if (message instanceof BotApiMethodBoolean method) {
-                absSender.execute(method);
-            }
-
-            return 0;
-
+            absSender.execute(message);
         } catch (TelegramApiException e) {
-
-            if (notHandleError) {
-                log.error(e.getMessage());
-            } else {
-//                absSender.handleAnException(e.getMessage());
-            }
-
-            return -1;
+            log.error(e.getMessage());
         }
     }
 }

@@ -1,17 +1,17 @@
 package com.infoBot.model;    /*
- *created by WerWolfe on Answers
+ *created by WerWolfe on Answer
  */
 
 import jakarta.persistence.*;
 import lombok.*;
 
-@NoArgsConstructor
+
 @Getter
 @Setter
 @ToString
-@Data
-@Entity(name="answer")
-public class Answers {
+@NoArgsConstructor
+@Entity(name="answers")
+public class Answer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,11 +21,11 @@ public class Answers {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
-    public Answers(String quest) {
+    public Answer(String quest) {
         this.quest = quest;
     }
 
-    public Answers(String quest, String answer) {
+    public Answer(String quest, String answer) {
         this.quest = quest;
         this.answer = answer;
     }

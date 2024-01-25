@@ -3,8 +3,6 @@ package com.infoBot.configuration;
 
 import com.infoBot.bot.InfoBot;
 import com.infoBot.config.SettingBot;
-import com.infoBot.model.Answers;
-import com.infoBot.repository.AnswersRepository;
 import com.infoBot.service.FileReaderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,15 +12,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -64,8 +54,10 @@ public class TelegramBotConfiguration {
             setting.setTimeout(5);
         }
 
+        Path path = fileReaderService.getFilePath();
+
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleAtFixedRate(fileReaderService :: downloadDataFromFile,
+        executorService.scheduleAtFixedRate(() -> fileReaderService.downloadDataFromFile(path),
                 1
                 , setting.getTimeout()
                 , TimeUnit.MINUTES);
